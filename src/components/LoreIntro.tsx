@@ -6,6 +6,19 @@ function lineDuration(line: string) {
   return 2.4 + line.length * 0.035
 }
 
+// Met le mot « Banni » (ou « Bannis ») en rouge barré
+function renderLine(line: string) {
+  return line.split(/(Bannis?)/).map((part, i) =>
+    /^Bannis?$/.test(part) ? (
+      <span key={i} className="banni">
+        {part}
+      </span>
+    ) : (
+      part
+    ),
+  )
+}
+
 type Props = { onDone: () => void }
 
 export function LoreIntro({ onDone }: Props) {
@@ -24,9 +37,10 @@ export function LoreIntro({ onDone }: Props) {
           key={index}
           className="animate-line max-w-md text-center text-2xl leading-relaxed text-[#cfcbe0]"
           style={{ animationDuration: `${lineDuration(line)}s` }}
-          onAnimationEnd={next}
+          // on ignore la fin de l'animation de la barre rouge, seule celle de la phrase compte
+          onAnimationEnd={(e) => e.animationName === 'line' && next()}
         >
-          {line}
+          {renderLine(line)}
         </p>
       </div>
 

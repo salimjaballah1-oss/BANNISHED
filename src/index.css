@@ -45,3 +45,26 @@ body {
   opacity: 0;
   animation: line 3s ease forwards;
 }
+
+/* Le mot « Banni » : rouge, avec une barre qui se trace dessus */
+.banni {
+  position: relative;
+  color: #c8282d;
+}
+
+.banni::after {
+  content: '';
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: 55%;
+  height: 2px;
+  background: #c8282d;
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: strike 0.5s ease-out 0.9s forwards;
+}
+
+@keyframes strike {
+  to { transform: scaleX(1); }
+}

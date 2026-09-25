@@ -5,6 +5,8 @@ import { Splash } from './components/Splash'
 const INTRO_SEEN_KEY = 'bannishcard:intro-seen'
 
 function hasSeenIntro() {
+  // ?intro à la fin de l'adresse : rejoue toujours l'intro (pratique pour tester)
+  if (location.search.includes('intro')) return false
   try {
     return localStorage.getItem(INTRO_SEEN_KEY) === '1'
   } catch {
