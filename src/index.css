@@ -60,6 +60,10 @@ body {
   top: 55%;
   height: 2px;
   background: #c8282d;
+}
+
+/* Première apparition du mot : la barre se trace de gauche à droite */
+.banni-animate::after {
   transform: scaleX(0);
   transform-origin: left;
   animation: strike 0.5s ease-out 0.9s forwards;

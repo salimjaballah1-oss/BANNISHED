@@ -6,17 +6,24 @@ function lineDuration(line: string) {
   return 2.4 + line.length * 0.035
 }
 
+const BANNI = /(Bannis?)/
+
+// Ligne où « Banni » apparaît pour la première fois : seule celle-ci a l'animation de la barre
+const firstBanniLine = introLore.findIndex((line) => BANNI.test(line))
+
 // Met le mot « Banni » (ou « Bannis ») en rouge barré
-function renderLine(line: string) {
-  return line.split(/(Bannis?)/).map((part, i) =>
-    /^Bannis?$/.test(part) ? (
-      <span key={i} className="banni">
+function renderLine(line: string, lineIndex: number) {
+  let animate = lineIndex === firstBanniLine
+  return line.split(BANNI).map((part, i) => {
+    if (!BANNI.test(part)) return part
+    const className = animate ? 'banni banni-animate' : 'banni'
+    animate = false
+    return (
+      <span key={i} className={className}>
         {part}
       </span>
-    ) : (
-      part
-    ),
-  )
+    )
+  })
 }
 
 type Props = { onDone: () => void }
@@ -40,7 +47,7 @@ export function LoreIntro({ onDone }: Props) {
           // on ignore la fin de l'animation de la barre rouge, seule celle de la phrase compte
           onAnimationEnd={(e) => e.animationName === 'line' && next()}
         >
-          {renderLine(line)}
+          {renderLine(line, index)}
         </p>
       </div>
 
