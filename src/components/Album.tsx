@@ -1,8 +1,12 @@
 import { useState } from 'react'
 import { cardsOf, useCatalog, type Catalog, type Entity } from '../lib/catalog'
+import { EntitySheet, type Kind } from './EntitySheet'
 import { supabase } from '../lib/supabase'
 
-type Tab = 'character' | 'weapon'
+type Tab = Kind
+
+// Fiche ouverte. fromAlbum : ouverte en touchant une case (sinon depuis une autre fiche)
+type Selected = { entity: Entity; kind: Kind; fromAlbum: boolean }
 
 type Props = { username: string }
 
@@ -10,6 +14,7 @@ type Props = { username: string }
 export function Album({ username }: Props) {
   const { catalog, error } = useCatalog()
   const [tab, setTab] = useState<Tab>('character')
+  const [selected, setSelected] = useState<Selected | null>(null)
 
   if (error) {
     return <p className="p-10 text-center text-white/60">Impossible de charger l’album. Réessaie plus tard.</p>
@@ -56,24 +61,51 @@ export function Album({ username }: Props) {
 
       <div className="grid grid-cols-2 gap-4">
         {entities.map((e) => (
-          <EntityTile key={e.id} entity={e} catalog={catalog} kind={tab} />
+          <EntityTile
+            key={e.id}
+            entity={e}
+            catalog={catalog}
+            kind={tab}
+            hidden={selected?.fromAlbum === true && selected.entity.id === e.id}
+            onClick={() => setSelected({ entity: e, kind: tab, fromAlbum: true })}
+          />
         ))}
       </div>
+
+      {selected && (
+        <EntitySheet
+          key={selected.entity.id}
+          catalog={catalog}
+          entity={selected.entity}
+          kind={selected.kind}
+          getOrigin={() =>
+            selected.fromAlbum
+              ? (document.querySelector(`[data-tile='${selected.entity.id}']`)?.getBoundingClientRect() ?? null)
+              : null
+          }
+          onClose={() => setSelected(null)}
+          onOpen={(entity, kind) => setSelected({ entity, kind, fromAlbum: false })}
+        />
+      )}
     </div>
   )
 }
 
-type TileProps = { entity: Entity; catalog: Catalog; kind: Tab }
+type TileProps = { entity: Entity; catalog: Catalog; kind: Tab; hidden: boolean; onClick: () => void }
 
 // Une case de l'album. Sans aucune carte du Banni, on ne voit que sa silhouette.
-function EntityTile({ entity, catalog, kind }: TileProps) {
+function EntityTile({ entity, catalog, kind, hidden, onClick }: TileProps) {
   const cards = cardsOf(catalog, entity, kind)
   const ownedCount = cards.filter((c) => c.quantity > 0).length
   const discovered = ownedCount > 0
 
   return (
-    <button className="group text-left">
-      <div className="relative aspect-[2/3] overflow-hidden rounded-2xl border border-white/10 bg-[#15151c]">
+    <button onClick={onClick} className="group text-left">
+      <div
+        data-tile={entity.id}
+        // pendant que la fiche est ouverte, la carte est « partie » de sa case
+        style={{ visibility: hidden ? 'hidden' : undefined }}
+        className="relative aspect-[2/3] overflow-hidden rounded-2xl border border-white/10 bg-[#15151c]">
         {discovered && entity.background_path && (
           <img src={entity.background_path} alt="" className="absolute inset-0 h-full w-full object-cover" />
         )}
