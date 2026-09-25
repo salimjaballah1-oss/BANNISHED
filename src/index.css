@@ -138,3 +138,9 @@ body {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+/* Banni pas encore découvert : sa silhouette seulement */
+.silhouette {
+  filter: brightness(0);
+  opacity: 0.55;
+}

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AuthScreen } from './components/AuthScreen'
-import { Home } from './components/Home'
+import { Album } from './components/Album'
 import { LoreIntro } from './components/LoreIntro'
 import { Splash } from './components/Splash'
 import { useAuth } from './lib/auth'
@@ -46,7 +46,7 @@ function App() {
         />
       )}
       {phase === 'app' &&
-        (session ? <Home username={profile?.username ?? 'Banni'} /> : <AuthScreen />)}
+        (session ? <Album username={profile?.username ?? 'Banni'} /> : <AuthScreen />)}
     </main>
   )
 }
