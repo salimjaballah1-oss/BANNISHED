@@ -1,39 +1,38 @@
+import { useState } from 'react'
 import { introLore } from '../content/lore'
 
-// Délai entre deux lignes, en secondes
-const LINE_DELAY = 1.6
+// Durée d'affichage d'une ligne : une base + un peu plus pour les phrases longues (en secondes)
+function lineDuration(line: string) {
+  return 2.4 + line.length * 0.035
+}
 
 type Props = { onDone: () => void }
 
 export function LoreIntro({ onDone }: Props) {
-  const enterDelay = introLore.length * LINE_DELAY + 0.4
+  const [index, setIndex] = useState(0)
+  const line = introLore[index]
+
+  function next() {
+    if (index + 1 < introLore.length) setIndex(index + 1)
+    else onDone()
+  }
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-night px-8 pt-[calc(env(safe-area-inset-top)+2rem)] pb-[calc(env(safe-area-inset-bottom)+1.5rem)]">
-      <div className="flex flex-1 flex-col justify-center gap-5">
-        {introLore.map((line, i) => (
-          <p
-            key={i}
-            className="animate-line text-lg leading-relaxed text-center text-[#cfcbe0]"
-            style={{ animationDelay: `${i * LINE_DELAY}s` }}
-          >
-            {line}
-          </p>
-        ))}
+    <div className="fixed inset-0 flex flex-col bg-night px-8 pt-[env(safe-area-inset-top)] pb-[calc(env(safe-area-inset-bottom)+1.5rem)]">
+      <div className="flex flex-1 items-center justify-center">
+        <p
+          key={index}
+          className="animate-line max-w-md text-center text-2xl leading-relaxed text-[#cfcbe0]"
+          style={{ animationDuration: `${lineDuration(line)}s` }}
+          onAnimationEnd={next}
+        >
+          {line}
+        </p>
       </div>
 
-      <div className="flex flex-col items-center gap-4">
-        <button
-          onClick={onDone}
-          className="animate-line rounded-full border border-white/20 px-8 py-3 text-sm tracking-[0.2em] uppercase"
-          style={{ animationDelay: `${enterDelay}s` }}
-        >
-          Entrer
-        </button>
-        <button onClick={onDone} className="text-xs text-white/40 underline-offset-4">
-          Passer
-        </button>
-      </div>
+      <button onClick={onDone} className="self-center text-sm text-white/40">
+        Passer
+      </button>
     </div>
   )
 }

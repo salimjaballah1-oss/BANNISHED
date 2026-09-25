@@ -2,6 +2,9 @@
 
 @theme {
   --color-night: #0b0b10;
+  /* Cinzel pour les titres, Cormorant Garamond pour le texte */
+  --font-title: 'Cinzel', serif;
+  --font-serif: 'Cormorant Garamond', serif;
 }
 
 html,
@@ -14,7 +17,7 @@ body {
   margin: 0;
   background: var(--color-night);
   color: #e8e6f0;
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family: var(--font-serif);
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
 }
@@ -30,12 +33,15 @@ body {
   animation: splash 1.4s ease forwards;
 }
 
+/* Une ligne apparaît en fondu, reste un moment, puis disparaît */
 @keyframes line {
-  from { opacity: 0; transform: translateY(8px); filter: blur(4px); }
-  to { opacity: 1; transform: none; filter: none; }
+  0% { opacity: 0; filter: blur(4px); }
+  25% { opacity: 1; filter: none; }
+  75% { opacity: 1; filter: none; }
+  100% { opacity: 0; filter: blur(4px); }
 }
 
 .animate-line {
   opacity: 0;
-  animation: line 1.2s ease forwards;
+  animation: line 3s ease forwards;
 }
