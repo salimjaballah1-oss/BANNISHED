@@ -1,107 +1,118 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 // Repères dans le dessin (mêmes unités que l'image du logo, 1200 × 446)
 const TIP_X = 584 // pointe de l'épée
 const TIP_Y = 429
-const BAR_Y = 540 // hauteur de la barre de sang
-const BAR_HALF = 400 // demi-longueur de la barre une fois pleine
 
 // Temps (en secondes)
-const DROP_START = 0.9 // la goutte commence à se former
-const BAR_START = 1.75 // la goutte touche le sol, la barre commence
-const MIN_FILL = 1.6 // durée minimale de remplissage, même si tout est déjà chargé
-
-// Gouttes qui pendent sous la barre : position (-1 = bord gauche, 1 = bord droit), délai
-const DRIPS = [
-  { at: -0.78, delay: 0.2 },
-  { at: -0.45, delay: 0.9 },
-  { at: -0.12, delay: 0.4 },
-  { at: 0.24, delay: 1.2 },
-  { at: 0.55, delay: 0.6 },
-  { at: 0.86, delay: 1.5 },
-]
+const FLOW_START = 1.4 // la goutte s'est formée, le sang commence à couler
+const MIN_FLOW = 2.2 // durée minimale de la coulée, même si tout est déjà chargé
 
 type Props = {
   onDone: () => void
-  // Plus tard : false tant que les données de l'appli chargent. La barre attend alors à 90 %.
+  // Plus tard : false tant que les données de l'appli chargent. Le sang attend alors à 90 %.
   ready?: boolean
 }
 
-// Écran de démarrage : le logo émerge, une goutte de sang tombe de l'épée et remplit la barre
+// Tracé du filet de sang : il descend en ondulant légèrement, jusqu'en bas de l'écran
+function streamPath(length: number) {
+  let d = `M ${TIP_X} ${TIP_Y}`
+  for (let y = 10; y <= length; y += 10) {
+    const x = TIP_X + 7 * Math.sin(y / 70) + 3 * Math.sin(y / 23)
+    d += ` L ${x.toFixed(1)} ${TIP_Y + y}`
+  }
+  return d
+}
+
+// Écran de démarrage : le logo émerge, puis le sang coule de l'épée jusqu'en bas de l'écran
 export function Splash({ onDone, ready = true }: Props) {
   const [progress, setProgress] = useState(0)
   const [leaving, setLeaving] = useState(false)
+  // longueur de la coulée, de la pointe de l'épée jusqu'au bas de l'écran (unités du dessin)
+  const [length, setLength] = useState(1000)
+  const logoRef = useRef<HTMLDivElement>(null)
+  const pathRef = useRef<SVGPathElement>(null)
   const readyRef = useRef(ready)
   useEffect(() => {
     readyRef.current = ready
   }, [ready])
 
+  useLayoutEffect(() => {
+    const box = logoRef.current!.getBoundingClientRect()
+    const unit = 1200 / box.width
+    const tipOnScreen = box.top + (TIP_Y / 1200) * box.width
+    setLength((window.innerHeight - tipOnScreen) * unit + 60)
+  }, [])
+
   useEffect(() => {
     let frame: number
     const start = performance.now()
     const tick = (now: number) => {
-      const t = (now - start) / 1000 - BAR_START
-      const timeShare = Math.min(1, Math.max(0, t / MIN_FILL))
+      const t = (now - start) / 1000 - FLOW_START
+      const timeShare = Math.min(1, Math.max(0, t / MIN_FLOW))
       const p = readyRef.current ? timeShare : Math.min(timeShare, 0.9)
       setProgress(p)
       if (p < 1) frame = requestAnimationFrame(tick)
-      else setTimeout(() => setLeaving(true), 400)
+      else setTimeout(() => setLeaving(true), 300)
     }
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
   }, [])
 
-  // la barre ralentit en arrivant au bout, comme un liquide qui s'étale
-  const half = BAR_HALF * (1 - Math.pow(1 - progress, 2))
+  const d = useMemo(() => streamPath(length), [length])
+  // le sang démarre doucement, accélère, puis ralentit en arrivant en bas
+  const flowed = progress * progress * (3 - 2 * progress)
+
+  // position de la tête de la coulée, pour y dessiner une goutte plus épaisse
+  const [head, setHead] = useState<DOMPoint | null>(null)
+  useLayoutEffect(() => {
+    const path = pathRef.current
+    if (path && progress > 0) setHead(path.getPointAtLength(flowed * path.getTotalLength()))
+  }, [flowed, progress])
 
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center bg-night ${leaving ? 'splash-leave' : ''}`}
+      className={`fixed inset-0 flex items-center justify-center overflow-hidden bg-night ${leaving ? 'splash-leave' : ''}`}
       onAnimationEnd={(e) => e.animationName === 'splash-out' && onDone()}
     >
-      <div className="splash-logo relative w-[82%] max-w-md">
+      <div ref={logoRef} className="splash-logo relative w-[82%] max-w-md">
         <img src="/logo-light.webp" alt="Bannished" className="block w-full" />
 
-        <svg viewBox="0 0 1200 640" className="absolute top-0 left-0 w-full overflow-visible">
+        <svg viewBox="0 0 1200 446" className="absolute top-0 left-0 w-full overflow-visible">
           <defs>
             {/* fait fusionner les formes entre elles comme un liquide */}
-            <filter id="goo">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="12" />
+            <filter
+              id="goo"
+              filterUnits="userSpaceOnUse"
+              x="0"
+              y="0"
+              width="1200"
+              height={TIP_Y + length + 100}
+            >
+              <feGaussianBlur in="SourceGraphic" stdDeviation="10" />
               <feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -10" />
             </filter>
           </defs>
 
           <g filter="url(#goo)" fill="#8e0b0b">
-            {/* la goutte qui se forme à la pointe puis tombe */}
-            <g style={{ transform: `translate(${TIP_X}px, ${TIP_Y}px)` }}>
-              <circle
-                cy="20"
-                r="24"
-                className="blood-drop"
-                style={{
-                  animationDelay: `${DROP_START}s`,
-                  ['--fall' as string]: `${BAR_Y - TIP_Y}px`,
-                }}
-              />
-            </g>
+            {/* la goutte qui se forme à la pointe avant de couler */}
+            <circle cx={TIP_X} cy={TIP_Y + 14} r="20" className="blood-drop" />
 
-            {/* la barre de chargement */}
-            <rect x={TIP_X - half} y={BAR_Y - 12} width={half * 2} height="24" rx="12" />
+            {/* le filet de sang, révélé petit à petit */}
+            <path
+              ref={pathRef}
+              d={d}
+              fill="none"
+              stroke="#8e0b0b"
+              strokeWidth="16"
+              strokeLinecap="round"
+              pathLength={1}
+              strokeDasharray="1 1"
+              strokeDashoffset={1 - flowed}
+            />
 
-            {/* les gouttes qui pendent sous la barre, dès que le sang est arrivé jusqu'à elles */}
-            {DRIPS.map((d) =>
-              Math.abs(d.at) * BAR_HALF < half - 20 ? (
-                <ellipse
-                  key={d.at}
-                  cx={TIP_X + d.at * BAR_HALF}
-                  cy={BAR_Y + 6}
-                  rx="15"
-                  ry="18"
-                  className="blood-drip"
-                  style={{ animationDelay: `${d.delay}s` }}
-                />
-              ) : null,
-            )}
+            {/* la tête de la coulée, un peu plus épaisse */}
+            {head && progress > 0 && <circle cx={head.x} cy={head.y} r="17" />}
           </g>
         </svg>
       </div>
