@@ -1,19 +1,42 @@
 import { useState } from 'react'
+import { LoreIntro } from './components/LoreIntro'
+import { Splash } from './components/Splash'
+
+const INTRO_SEEN_KEY = 'bannishcard:intro-seen'
+
+function hasSeenIntro() {
+  try {
+    return localStorage.getItem(INTRO_SEEN_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function markIntroSeen() {
+  try {
+    localStorage.setItem(INTRO_SEEN_KEY, '1')
+  } catch {
+    // stockage indisponible (navigation privée) : l'intro sera simplement rejouée
+  }
+}
+
+type Phase = 'splash' | 'intro' | 'app'
 
 function App() {
-  const [showSplash, setShowSplash] = useState(true)
+  const [phase, setPhase] = useState<Phase>('splash')
 
   return (
     <main className="h-full bg-night pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-      {showSplash && (
-        <div
-          className="fixed inset-0 flex items-center justify-center bg-night animate-splash"
-          onAnimationEnd={() => setShowSplash(false)}
-        >
-          <span className="text-3xl font-semibold tracking-[0.3em] uppercase">
-            Bannishcard
-          </span>
-        </div>
+      {phase === 'splash' && (
+        <Splash onDone={() => setPhase(hasSeenIntro() ? 'app' : 'intro')} />
+      )}
+      {phase === 'intro' && (
+        <LoreIntro
+          onDone={() => {
+            markIntroSeen()
+            setPhase('app')
+          }}
+        />
       )}
     </main>
   )
