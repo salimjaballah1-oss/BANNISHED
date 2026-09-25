@@ -2,6 +2,7 @@
 
 @theme {
   --color-night: #0b0b10;
+  --color-blood: #b3161b;
   /* Cinzel pour les titres, Cormorant Garamond pour le texte */
   --font-title: 'Cinzel', serif;
   --font-serif: 'Cormorant Garamond', serif;
@@ -95,4 +96,45 @@ body {
 
 @keyframes strike {
   to { transform: scaleX(1); }
+}
+
+/* ---------- Formulaires ---------- */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field > span {
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.5);
+}
+
+/* champ sobre : une simple ligne fine sous le texte */
+.field input {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgb(255 255 255 / 0.2);
+  padding: 0.4rem 0;
+  font-size: 1.25rem; /* 16px minimum, sinon l'iPhone zoome sur le champ */
+  color: inherit;
+  outline: none;
+  border-radius: 0;
+  transition: border-color 0.2s;
+}
+
+.field input:focus {
+  border-bottom-color: var(--color-blood);
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease forwards;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

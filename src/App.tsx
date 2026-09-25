@@ -1,6 +1,9 @@
 import { useState } from 'react'
+import { AuthScreen } from './components/AuthScreen'
+import { Home } from './components/Home'
 import { LoreIntro } from './components/LoreIntro'
 import { Splash } from './components/Splash'
+import { useAuth } from './lib/auth'
 
 const INTRO_SEEN_KEY = 'bannishcard:intro-seen'
 
@@ -26,11 +29,13 @@ type Phase = 'splash' | 'intro' | 'app'
 
 function App() {
   const [phase, setPhase] = useState<Phase>('splash')
+  const { session, profile, loading } = useAuth()
 
   return (
-    <main className="h-full bg-night pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+    <main className="h-full overflow-y-auto bg-night pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       {phase === 'splash' && (
-        <Splash onDone={() => setPhase(hasSeenIntro() ? 'app' : 'intro')} />
+        // le sang attend que l'on sache si le joueur est connecté
+        <Splash ready={!loading} onDone={() => setPhase(hasSeenIntro() ? 'app' : 'intro')} />
       )}
       {phase === 'intro' && (
         <LoreIntro
@@ -40,6 +45,8 @@ function App() {
           }}
         />
       )}
+      {phase === 'app' &&
+        (session ? <Home username={profile?.username ?? 'Banni'} /> : <AuthScreen />)}
     </main>
   )
 }
