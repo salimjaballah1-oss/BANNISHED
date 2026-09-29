@@ -1,5 +1,6 @@
 import type { Session } from '@supabase/supabase-js'
 import { useEffect, useState } from 'react'
+import { saveAccount, shouldRemember, updateAccountTokens } from './accounts'
 import { supabase } from './supabase'
 
 export type Profile = { id: string; username: string }
@@ -18,6 +19,7 @@ export function useAuth() {
         setLoading(false)
         return
       }
+      updateAccountTokens(newSession)
       // on sort du rappel avant d'interroger la base, comme le recommande Supabase
       setTimeout(async () => {
         const { data: row } = await supabase
@@ -27,6 +29,7 @@ export function useAuth() {
           .single()
         setProfile(row)
         setLoading(false)
+        if (row && shouldRemember()) saveAccount(newSession, row.username)
       })
     })
     return () => data.subscription.unsubscribe()

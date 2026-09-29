@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { cardsOf, useCatalog, type Catalog, type Entity } from '../lib/catalog'
 import { EntitySheet, type Kind } from './EntitySheet'
-import { supabase } from '../lib/supabase'
 
 type Tab = Kind
 
@@ -28,9 +27,7 @@ export function Album({ username }: Props) {
     <div className="animate-fade-in mx-auto max-w-xl px-5 pt-6 pb-10">
       <header className="mb-6 flex items-center justify-between">
         <img src="/logo-light.webp" alt="Bannished" className="w-32" />
-        <button onClick={() => supabase.auth.signOut()} className="text-sm text-white/40">
-          {username} · Déconnexion
-        </button>
+        <span className="text-sm text-white/40">{username}</span>
       </header>
 
       <div className="mb-6">

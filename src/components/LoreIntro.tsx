@@ -26,9 +26,10 @@ function renderLine(line: string, lineIndex: number) {
   })
 }
 
-type Props = { onDone: () => void }
+// skippable : sinon l'intro doit être vue en entier (première connexion)
+type Props = { skippable: boolean; onDone: () => void }
 
-export function LoreIntro({ onDone }: Props) {
+export function LoreIntro({ skippable, onDone }: Props) {
   const [index, setIndex] = useState(0)
   const line = introLore[index]
 
@@ -51,7 +52,11 @@ export function LoreIntro({ onDone }: Props) {
         </p>
       </div>
 
-      <button onClick={onDone} className="self-center text-sm text-white/40">
+      {/* sans bouton, on garde la place pour que le texte ne bouge pas */}
+      <button
+        onClick={onDone}
+        className={`self-center text-sm text-white/40 ${skippable ? '' : 'invisible'}`}
+        disabled={!skippable}>
         Passer
       </button>
     </div>
