@@ -1,10 +1,28 @@
 @import 'tailwindcss';
 
 @theme {
-  /* papier Dunder Mifflin et encre de la machine à écrire */
-  --color-paper: #f4f1e8;
-  --color-ink: #1d1d1b;
-  --font-type: 'Courier New', Courier, monospace;
+  /* un bureau sombre, du papier vieilli posé dessus */
+  --color-desk: #231d18;
+  --color-paper: #e4d4b5; /* ton moyen de public/paper.webp */
+  --color-paper-edge: #cfc3a5;
+  --color-ink: #23201b;
+  --color-card: #f6f1e4;
+  --color-navy: #1f3b63; /* Dunder Mifflin */
+  --color-money: #3d6b3a; /* boutons d'achat */
+  --color-note: #f2dd87; /* post-it */
+  --color-beet: #8c1c3a;
+  --color-leaf: #4d6b35;
+
+  /* raretés */
+  --color-common: #8b877c;
+  --color-uncommon: #5b8a47;
+  --color-rare: #2f5f9e;
+  --color-epic: #7a3f98;
+  --color-legendary: #c29a2b;
+  --color-secret: #2b2b2b;
+
+  --font-type: 'Courier Prime', 'Courier New', Courier, monospace;
+  --font-logo: 'Oswald', 'Arial Narrow', sans-serif;
 }
 
 html,
@@ -15,7 +33,7 @@ body,
 
 body {
   margin: 0;
-  background: var(--color-paper);
+  background: var(--color-desk);
   color: var(--color-ink);
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
   -webkit-tap-highlight-color: transparent;
@@ -71,4 +89,70 @@ body {
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* Clicker : la tasse s'enfonce puis rebondit */
+.clicker-press {
+  animation: clicker-press 0.22s ease-out;
+}
+
+@keyframes clicker-press {
+  0% { transform: scale(1); }
+  35% { transform: scale(0.93) translateY(4px); }
+  100% { transform: scale(1); }
+}
+
+.clicker-gain {
+  animation: clicker-gain 0.8s ease-out forwards;
+}
+
+@keyframes clicker-gain {
+  from { opacity: 1; transform: translate(-50%, 0); }
+  to { opacity: 0; transform: translate(-50%, -70px); }
+}
+
+/* Feuilles posées sur le bureau : papier vieilli (public/paper.webp) et ombre courte.
+   drop-shadow plutôt que box-shadow : l'ombre suit aussi les bords déchirés. */
+.paper {
+  background: var(--color-paper) url('/paper.webp') center / cover;
+  filter: drop-shadow(0 3px 4px rgb(0 0 0 / 0.4));
+}
+
+/* bout de scotch en haut d'une feuille */
+.tape::before {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  width: 72px;
+  height: 20px;
+  translate: -50% 0;
+  rotate: -3deg;
+  background: rgb(246 240 224 / 0.85);
+  border-left: 1px dashed rgb(0 0 0 / 0.08);
+  border-right: 1px dashed rgb(0 0 0 / 0.08);
+}
+
+/* défilement horizontal sans barre visible (collection sur téléphone) */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Reflet de l'emballage du Collector Pack : une bande claire qui glisse selon l'angle (--shine) */
+.pack-shine {
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgb(255 255 255 / 0.5) 47%,
+    rgb(255 255 255 / 0.15) 53%,
+    transparent 62%
+  );
+  background-size: 300% 100%;
+  background-position: calc(var(--shine, 0.5) * 100%) 0;
+  mask-size: 100% 100%;
+  -webkit-mask-size: 100% 100%;
+  mix-blend-mode: soft-light;
 }
